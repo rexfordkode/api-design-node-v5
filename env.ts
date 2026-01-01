@@ -8,7 +8,7 @@ const isDevelopment = process.env.APP_STAGE === 'dev'
 const isTesting = process.env.APP_STAGE === 'test'
 
 if (isDevelopment) {
-  loadEnv()
+  loadEnv('development')
 } else if (isTesting) {
   loadEnv('test')
 }
@@ -21,7 +21,13 @@ const envSchema = z.object({
   APP_STAGE: z.enum(['dev', 'test', 'production']).default('dev'),
 
   PORT: z.coerce.number().positive().default(3000),
-  DATABASE_URL: z.string().startsWith('postgresql://'),
+  DATABASE_URL: z
+    .string()
+    .url()
+    .refine(
+      (url) => url.startsWith('postgresql://') || url.startsWith('postgres://'),
+      'Must start with postgresql:// or postgres://'
+    ),
   JWT_SECRET: z.string().min(32, 'Must be 32 chars long'),
   JWT_EXPIRES_IN: z.string().default('7d'),
   BCRYPT_ROUNDS: z.coerce.number().min(10).max(20).default(12),
@@ -35,7 +41,7 @@ try {
 } catch (e) {
   if (e instanceof z.ZodError) {
     console.log('Invalid env var')
-    console.error(JSON.stringify(e.flatten().fieldErrors, null, 2))
+    console.error(JSON.stringify(e, null, 2))
 
     e.issues.forEach((err) => {
       const path = err.path.join('.')
