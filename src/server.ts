@@ -6,6 +6,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import { isTest } from '../env.ts'
+import { APIError, errorHandler, notFound } from './middleware/errorHandler.ts'
 
 const app = express()
 
@@ -19,6 +20,10 @@ app.use(
 )
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+app.use((_, __, next) => {
+  next(new APIError('Something went wrong', 'ValidationError', 400))
+})
 
 app.get('/health', (req, res) => {
   res
@@ -44,5 +49,10 @@ app.use('/api/auth', authRoutes)
 app.use('/api/habits', habitRoutes)
 app.use('/api/users', userRoutes)
 
+// 404 handler - MUST come after all valid routes
+app.use(notFound)
+
+// Global error handler - MUST be last
+app.use(errorHandler)
 export { app }
 export default app
