@@ -1,5 +1,4 @@
 import type { Request, Response } from 'express'
-import bcrypt from 'bcrypt'
 import { db } from '../db/connection.ts'
 import { users, type NewUser, type User } from '../db/schema.ts'
 import { generateToken } from '../utils/jwt.ts'

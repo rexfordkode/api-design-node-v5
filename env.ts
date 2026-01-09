@@ -1,17 +1,28 @@
 import { env as loadEnv } from 'custom-env'
 import { z } from 'zod'
 
+// Normalize environment stage and load the matching .env file explicitly
 process.env.APP_STAGE = process.env.APP_STAGE || 'dev'
+const nodeEnv = process.env.NODE_ENV || 'development'
 
-const isProduction = process.env.APP_STAGE === 'production'
-const isDevelopment = process.env.APP_STAGE === 'dev'
-const isTesting = process.env.APP_STAGE === 'test'
+// Map our APP_STAGE values to actual .env filenames expected by custom-env
+const stageForFile = (() => {
+  const appStage = process.env.APP_STAGE
+  if (appStage === 'dev') return 'development'
+  if (appStage === 'test') return 'test'
+  if (appStage === 'production') return 'production'
+  // Fallback to NODE_ENV mapping
+  if (
+    nodeEnv === 'development' ||
+    nodeEnv === 'test' ||
+    nodeEnv === 'production'
+  )
+    return nodeEnv
+  return 'development'
+})()
 
-if (isDevelopment) {
-  loadEnv()
-} else if (isTesting) {
-  loadEnv('test')
-}
+// Always pass an explicit stage to avoid "undefined" warnings
+loadEnv(stageForFile)
 
 const envSchema = z.object({
   NODE_ENV: z
