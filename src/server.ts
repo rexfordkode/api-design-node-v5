@@ -20,10 +20,6 @@ app.use(
   })
 )
 
-app.use((_, __, next) => {
-  next(new APIError('validation error', 'ValidationError', 400))
-})
-
 app.get('/health', (req, res) => {
   res.send('<button>another</button>')
 })
